@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>關於我們 - 我的線上商店</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header>
+        <a href="index.html" class="admin-login-link" title="前往後台管理">後台登入</a>
+        <h1>我的線上商店</h1>
+        <button class="hamburger-menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </header>
+    <nav id="main-nav">
+        <a href="../html/index.html">首頁</a>
+        <a href="../html/products.html">產品</a>
+        <a href="../html/about.html">關於我們</a>
+        <a href="../html/contact.html">聯絡我們</a>
+        <a href="../html/login.html" id="nav-login-link">登入/註冊</a>
+        <a href="#" id="cart-icon">購物車 (<span id="cart-count">0</span>)</a>
+    </nav>
+
+    <div class="container">
+        <h2>關於我們</h2>
+        <p>歡迎來到「我的線上商店」！我們致力於提供最優質的商品與最貼心的服務。</p>
+        <p>我們的故事始於2024年，由一群對電子商務充滿熱情的開發者創立。我們的目標是打造一個不僅美觀，而且功能強大、使用者體驗一流的購物平台。</p>
+        <p>感謝您的支持，希望您在這裡能找到心儀的商品！</p>
+    </div>
+
+    <!-- 購物車 Modal -->
+    <div id="cart-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>您的購物車</h2>
+            <div id="cart-items"></div>
+            <hr>
+            <h3>總計: <span id="cart-total">NT$ 0</span></h3>
+            <button id="checkout-btn">前往結帳</button>
+        </div>
+    </div>
+
+    <button id="back-to-top-btn" title="回到頂部">▲</button>
+
+    <footer>
+        <p>&copy; 2024 我的線上商店. 版權所有.</p>
+    </footer>
+
+    <script src="../js/script.js"></script>
+</body>
+</html>
