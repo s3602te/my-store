@@ -18,6 +18,17 @@ export const ORDER_STATUSES = [
 
 export type OrderStatus = (typeof ORDER_STATUSES)[number]
 
+/** 狀態的中文名稱(顯示在錯誤訊息與畫面上) */
+export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
+  PENDING: '待接單',
+  ACCEPTED: '已接單',
+  PREPARING: '製作中',
+  READY: '可取餐',
+  COMPLETED: '已完成',
+  CANCELLED: '已取消',
+  REJECTED: '店家拒絕',
+}
+
 /** 誰在操作:顧客(用追蹤連結)或店員(後台登入者) */
 export type Actor = 'CUSTOMER' | 'STAFF'
 
@@ -80,7 +91,7 @@ export function checkTransition(from: OrderStatus, to: OrderStatus, ctx: Transit
   const rule = RULES[from].find((r) => r.to === to)
 
   if (!rule) {
-    return { ok: false, code: 'INVALID_TRANSITION', message: `訂單不能從 ${from} 變成 ${to}` }
+    return { ok: false, code: 'INVALID_TRANSITION', message: `訂單目前是「${ORDER_STATUS_LABELS[from]}」,不能變成「${ORDER_STATUS_LABELS[to]}」` }
   }
   if (!rule.actors.includes(ctx.actor)) {
     return { ok: false, code: 'NOT_ALLOWED', message: `${ctx.actor === 'CUSTOMER' ? '顧客' : '店員'}無法執行這個操作` }

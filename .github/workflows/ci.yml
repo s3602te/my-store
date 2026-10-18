@@ -1,7 +1,7 @@
 name: 檢查(型別、測試、建置)
 
 # 每次推送到 master、或有人送出 Pull Request 時,自動檢查程式有沒有壞掉。
-# 不需要資料庫:測試用假的資料庫連線,不會連到任何真實資料。
+# 測試需要資料庫:這裡啟動一個「只存在於這次檢查」的臨時 PostgreSQL,測試完就消失,不會碰到任何真實資料。
 
 on:
   push:
@@ -14,9 +14,26 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ci -d ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
     env:
-      # 只給 Prisma 產生程式碼與測試用的假連線字串,不是真的資料庫
+      # 測試會自動建立並使用 ci_test 資料庫(名稱一律以 _test 結尾,測試程式會拒絕清空其他名稱的資料庫)
       DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7

@@ -1,12 +1,19 @@
 import { defineConfig } from 'vitest/config'
+import { getTestDatabaseUrl } from './test/testDb.ts'
 
 export default defineConfig({
   test: {
     include: ['test/**/*.test.ts'],
-    // 測試不需要真的資料庫,給一個假的連線字串讓 config.ts 通過檢查
+    globalSetup: ['./test/globalSetup.ts'],
+    // 所有測試檔共用同一個測試資料庫,所以一個一個依序執行,避免互相干擾
+    fileParallelism: false,
+    testTimeout: 20_000,
+    hookTimeout: 30_000,
     env: {
       NODE_ENV: 'test',
-      DATABASE_URL: 'postgresql://test:test@localhost:5432/test',
+      DATABASE_URL: getTestDatabaseUrl(),
+      RATE_LIMIT_ENABLED: 'false',
+      STORE_SLUG: 'my-store',
     },
   },
 })

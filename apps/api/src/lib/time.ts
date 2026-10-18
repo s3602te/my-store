@@ -72,3 +72,9 @@ export function isWithinHours(date: Date, openTime: string, closeTime: string): 
   const now = minutesOfDay(date)
   return now >= hhmmToMinutes(openTime) && now < hhmmToMinutes(closeTime)
 }
+
+/** 台北時間的 HH:mm(給錯誤訊息顯示用) */
+export function formatTaipeiHHmm(date: Date): string {
+  const { hour, minute } = taipeiParts(date)
+  return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
+}

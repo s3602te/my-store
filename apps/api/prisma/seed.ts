@@ -360,7 +360,7 @@ async function seedDemoOrders(
     const businessDate = businessDateOf(createdAt)
 
     // 組出每個品項:名稱與價格都存「快照」
-    const lineData = demo.lines.map((line) => {
+    const lineData = demo.lines.map((line, lineIndex) => {
       const item = items.get(line.item)
       if (!item) throw new Error(`假訂單用到不存在的餐點:${line.item}`)
       const picked = (line.options ?? []).map(([groupName, optionName]) => {
@@ -369,6 +369,7 @@ async function seedDemoOrders(
         return { groupName, optionName, priceDelta: option.priceDelta }
       })
       return {
+        position: lineIndex,
         menuItemId: item.id,
         nameSnapshot: line.item,
         unitPriceSnapshot: item.price,
@@ -376,7 +377,8 @@ async function seedDemoOrders(
         note: line.note ?? null,
         lineTotal: calcLineTotal(item.price, picked.map((p) => p.priceDelta), line.quantity),
         options: {
-          create: picked.map((p) => ({
+          create: picked.map((p, optionIndex) => ({
+            position: optionIndex,
             groupNameSnapshot: p.groupName,
             nameSnapshot: p.optionName,
             priceDeltaSnapshot: p.priceDelta,

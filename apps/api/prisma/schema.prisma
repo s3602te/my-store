@@ -67,33 +67,61 @@ model Store {
   timezone        String   @default("Asia/Taipei")
   /// 暫停接單開關:false = 不接受新訂單
   acceptingOrders Boolean  @default(true)
+  /// 營業時間(台北時間,HH:mm);只在這段時間內接受下單
+  openTime        String   @default("06:00")
+  closeTime       String   @default("13:00")
+  /// 備餐所需分鐘數:顧客的取餐時間不能早於「現在 + 這個分鐘數」
+  prepMinutes     Int      @default(10)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  staff          StaffUser[]
-  customers      Customer[]
-  categories     MenuCategory[]
-  menuItems      MenuItem[]
-  optionGroups   OptionGroup[]
-  orders         Order[]
-  auditLogs      AuditLog[]
+  staff        StaffUser[]
+  customers    Customer[]
+  categories   MenuCategory[]
+  menuItems    MenuItem[]
+  optionGroups OptionGroup[]
+  orders       Order[]
+  auditLogs    AuditLog[]
 }
 
 model StaffUser {
-  id           String    @id @default(uuid(7)) @db.Uuid
-  storeId      String    @db.Uuid
-  email        String    @unique
+  id               String    @id @default(uuid(7)) @db.Uuid
+  storeId          String    @db.Uuid
+  email            String    @unique
   /// 只存雜湊後的密碼,絕不存明文
-  passwordHash String
-  name         String
-  role         StaffRole @default(STAFF)
-  isActive     Boolean   @default(true)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  passwordHash     String
+  name             String
+  role             StaffRole @default(STAFF)
+  isActive         Boolean   @default(true)
+  /// 連續登入失敗次數;超過上限會暫時鎖定,登入成功就歸零
+  failedLoginCount Int       @default(0)
+  lockedUntil      DateTime?
+  lastLoginAt      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
-  store Store @relation(fields: [storeId], references: [id])
+  store    Store          @relation(fields: [storeId], references: [id])
+  sessions StaffSession[]
 
   @@index([storeId])
+}
+
+/// 員工登入後的「通行證」。瀏覽器 Cookie 存原始值,資料庫只存雜湊(SHA-256),
+/// 就算資料庫外洩,也不能直接拿來冒用登入。登出或過期就失效。
+model StaffSession {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  staffUserId String   @db.Uuid
+  tokenHash   String   @unique
+  expiresAt   DateTime
+  lastSeenAt  DateTime @default(now())
+  userAgent   String?
+  ip          String?
+  createdAt   DateTime @default(now())
+
+  staffUser StaffUser @relation(fields: [staffUserId], references: [id], onDelete: Cascade)
+
+  @@index([staffUserId])
+  @@index([expiresAt])
 }
 
 /// 顧客(為日後的會員功能預留,MVP 不使用;訪客下單時 Order.customerId 為空)
@@ -147,8 +175,8 @@ model MenuItem {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  store        Store                @relation(fields: [storeId], references: [id])
-  category     MenuCategory         @relation(fields: [categoryId], references: [id])
+  store        Store                 @relation(fields: [storeId], references: [id])
+  category     MenuCategory          @relation(fields: [categoryId], references: [id])
   optionGroups MenuItemOptionGroup[]
   orderItems   OrderItem[]
 
@@ -168,7 +196,7 @@ model OptionGroup {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  store   Store                @relation(fields: [storeId], references: [id])
+  store   Store                 @relation(fields: [storeId], references: [id])
   options Option[]
   items   MenuItemOptionGroup[]
 
@@ -219,7 +247,7 @@ model Order {
   status          OrderStatus     @default(PENDING)
 
   /// 為日後的會員功能預留;訪客下單時為空
-  customerId      String?         @db.Uuid
+  customerId      String?   @db.Uuid
   customerName    String
   customerPhone   String
   note            String?
@@ -230,17 +258,17 @@ model Order {
   deliveryAddress String?
 
   /// 金額(新台幣元,整數):小計、折扣(預留,目前 0)、總額
-  subtotal        Int
-  discount        Int             @default(0)
-  total           Int
+  subtotal Int
+  discount Int @default(0)
+  total    Int
 
-  cancelReason    String?
-  acceptedAt      DateTime?
-  readyAt         DateTime?
-  completedAt     DateTime?
-  cancelledAt     DateTime?
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  cancelReason String?
+  acceptedAt   DateTime?
+  readyAt      DateTime?
+  completedAt  DateTime?
+  cancelledAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   store    Store       @relation(fields: [storeId], references: [id])
   customer Customer?   @relation(fields: [customerId], references: [id])
@@ -262,6 +290,8 @@ model OrderItem {
   /// 下單當下的名稱與單價(快照)
   nameSnapshot      String
   unitPriceSnapshot Int
+  /// 顧客點餐的順序(第幾項),讓明細的排列順序與顧客點的一致
+  position          Int      @default(0)
   quantity          Int
   note              String?
   lineTotal         Int
@@ -278,6 +308,8 @@ model OrderItemOption {
   id                 String @id @default(uuid(7)) @db.Uuid
   orderItemId        String @db.Uuid
   /// 選項群組名稱的快照,例如「大小」(只看到「大」會不知道是什麼)
+  /// 選項的順序
+  position           Int    @default(0)
   groupNameSnapshot  String @default("")
   /// 選項名稱的快照,例如「大」
   nameSnapshot       String
