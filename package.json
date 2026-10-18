@@ -1,34 +1,33 @@
 {
   "name": "my-store",
   "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
   "scripts": {
-    "dev": "vite",
-    "build": "tsc --noEmit && vite build",
-    "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "dev": "concurrently -k -n web,api -c cyan,green \"npm run dev -w apps/web\" \"npm run dev -w apps/api\"",
+    "dev:web": "npm run dev -w apps/web",
+    "dev:api": "npm run dev -w apps/api",
+    "build": "npm run build -w apps/web",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm test -w apps/api",
+    "db:up": "docker compose up -d db",
+    "db:stop": "docker compose stop db",
+    "db:generate": "npm run db:generate -w apps/api",
+    "db:migrate": "npm run db:migrate -w apps/api",
+    "db:seed": "npm run db:seed -w apps/api",
+    "db:studio": "npm run db:studio -w apps/api"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/s3602te/my-store.git"
   },
-  "type": "module",
   "bugs": {
     "url": "https://github.com/s3602te/my-store/issues"
   },
   "homepage": "https://github.com/s3602te/my-store#readme",
-  "dependencies": {
-    "react": "^19.3.1",
-    "react-dom": "^19.3.1",
-    "react-router-dom": "^7.18.4"
-  },
   "devDependencies": {
-    "@tailwindcss/vite": "^4.3.3",
-    "@types/react": "^19.3.0",
-    "@types/react-dom": "^19.3.0",
-    "@vitejs/plugin-react": "^6.1.2",
-    "tailwindcss": "^4.3.3",
-    "typescript": "^7.0.2",
-    "vite": "^8.3.4"
-  },
-  "private": true
+    "concurrently": "^10.0.6"
+  }
 }

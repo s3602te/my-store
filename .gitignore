@@ -2,10 +2,12 @@
 CLAUDE.md
 CLAUDE.local.md
 .claude/
+docs/
 
 # 環境變數與機密
 .env
 .env.*
+!.env.example
 *.pem
 *.key
 *.p12
@@ -19,6 +21,8 @@ service-account*.json
 
 # 資料庫 / 備份 / 記錄
 *.sql
+# 例外:Prisma 的 migration 檔案要上傳(其他 .sql,例如資料庫備份,仍然忽略)
+!apps/api/prisma/migrations/*/migration.sql
 *.sqlite
 *.sqlite3
 *.db
@@ -39,3 +43,6 @@ desktop.ini
 # 建置輸出
 dist/
 *.tsbuildinfo
+
+# Prisma 自動產生的程式碼(每次 npm run db:generate 都會重新產生,不需要上傳)
+apps/api/src/generated/

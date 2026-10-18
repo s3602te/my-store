@@ -1,0 +1,33 @@
+# 本機開發用:目前只有資料庫(PostgreSQL)一個服務。
+# 後端與前端還是直接在你的電腦上執行(npm run dev),等開發完成後才會把它們也放進 Docker。
+#
+# 常用指令:
+#   docker compose up -d db     啟動資料庫(背景執行)
+#   docker compose ps           查看狀態(要顯示 healthy)
+#   docker compose stop db      暫停(資料保留)
+#   docker compose down         關閉並移除容器(資料仍保留在 volume 裡)
+#   docker compose down -v      ⚠️ 連資料一起刪除(資料庫會被清空)
+
+services:
+  db:
+    image: postgres:17
+    container_name: my-store-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?請先把 .env.example 複製成 .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?請先把 .env.example 複製成 .env}
+      POSTGRES_DB: ${POSTGRES_DB:?請先把 .env.example 複製成 .env}
+      TZ: Asia/Taipei
+    ports:
+      # 只綁定本機(127.0.0.1),區網內的其他電腦連不到你的資料庫
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  db_data:

@@ -1,0 +1,351 @@
+// Prisma schema:整個資料庫有哪些資料表、欄位、關係,都寫在這個檔案裡。
+// 設計說明見 docs/01-data-model.md(docs 只在本機,不上傳)。
+//
+// 規則:
+//  - 金額一律是 Int(新台幣元,整數),不用小數。
+//  - 所有業務資料都有 storeId(目前只有一家店,日後可升級多店)。
+//  - 訂單明細存「下單當下的名稱與價格」(快照),改菜單不影響舊訂單。
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────────── 列舉 ───────────────
+
+enum StaffRole {
+  OWNER
+  MANAGER
+  STAFF
+}
+
+/// 用餐方式。目前只開放 TAKEOUT(外帶);內用、外送之後再開放
+enum FulfillmentType {
+  TAKEOUT
+  DINE_IN
+  DELIVERY
+}
+
+enum OrderStatus {
+  PENDING // 待接單
+  ACCEPTED // 已接單
+  PREPARING // 製作中
+  READY // 可取餐
+  COMPLETED // 已完成
+  CANCELLED // 已取消
+  REJECTED // 店家拒絕
+}
+
+enum PaymentMethod {
+  CASH // 現金(之後會加 CARD、LINE_PAY ...)
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+}
+
+enum InvoiceStatus {
+  NOT_REQUIRED
+  PENDING
+  ISSUED
+  VOIDED
+}
+
+// ─────────────── 店家與員工 ───────────────
+
+model Store {
+  id              String   @id @default(uuid(7)) @db.Uuid
+  name            String
+  slug            String   @unique
+  timezone        String   @default("Asia/Taipei")
+  /// 暫停接單開關:false = 不接受新訂單
+  acceptingOrders Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  staff          StaffUser[]
+  customers      Customer[]
+  categories     MenuCategory[]
+  menuItems      MenuItem[]
+  optionGroups   OptionGroup[]
+  orders         Order[]
+  auditLogs      AuditLog[]
+}
+
+model StaffUser {
+  id           String    @id @default(uuid(7)) @db.Uuid
+  storeId      String    @db.Uuid
+  email        String    @unique
+  /// 只存雜湊後的密碼,絕不存明文
+  passwordHash String
+  name         String
+  role         StaffRole @default(STAFF)
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  store Store @relation(fields: [storeId], references: [id])
+
+  @@index([storeId])
+}
+
+/// 顧客(為日後的會員功能預留,MVP 不使用;訪客下單時 Order.customerId 為空)
+model Customer {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  storeId   String   @db.Uuid
+  name      String
+  phone     String
+  email     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  store  Store   @relation(fields: [storeId], references: [id])
+  orders Order[]
+
+  @@index([storeId, phone])
+}
+
+// ─────────────── 菜單 ───────────────
+
+model MenuCategory {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  storeId   String   @db.Uuid
+  name      String
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  store Store      @relation(fields: [storeId], references: [id])
+  items MenuItem[]
+
+  @@unique([storeId, name])
+  @@index([storeId, sortOrder])
+}
+
+model MenuItem {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  storeId     String   @db.Uuid
+  categoryId  String   @db.Uuid
+  name        String
+  description String   @default("")
+  /// 單價(新台幣元,整數)
+  price       Int
+  imageUrl    String?
+  /// false = 今日售完(顧客看得到,但不能點)
+  isAvailable Boolean  @default(true)
+  /// false = 下架(顧客看不到)
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  store        Store                @relation(fields: [storeId], references: [id])
+  category     MenuCategory         @relation(fields: [categoryId], references: [id])
+  optionGroups MenuItemOptionGroup[]
+  orderItems   OrderItem[]
+
+  @@unique([storeId, name])
+  @@index([storeId, categoryId, sortOrder])
+}
+
+/// 選項群組,例如「辣度」、「加料」
+model OptionGroup {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  storeId   String   @db.Uuid
+  name      String
+  /// 最少/最多要選幾個(例如辣度 0~1;加料 0~3)
+  minSelect Int      @default(0)
+  maxSelect Int      @default(1)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  store   Store                @relation(fields: [storeId], references: [id])
+  options Option[]
+  items   MenuItemOptionGroup[]
+
+  @@unique([storeId, name])
+}
+
+model Option {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  groupId     String   @db.Uuid
+  name        String
+  /// 加價(新台幣元,整數;不加價就是 0)
+  priceDelta  Int      @default(0)
+  isAvailable Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  group OptionGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, name])
+}
+
+/// 哪些餐點有哪些選項群組(多對多)
+model MenuItemOptionGroup {
+  menuItemId    String @db.Uuid
+  optionGroupId String @db.Uuid
+  sortOrder     Int    @default(0)
+
+  menuItem    MenuItem    @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  optionGroup OptionGroup @relation(fields: [optionGroupId], references: [id], onDelete: Cascade)
+
+  @@id([menuItemId, optionGroupId])
+}
+
+// ─────────────── 訂單 ───────────────
+
+model Order {
+  id              String          @id @default(uuid(7)) @db.Uuid
+  storeId         String          @db.Uuid
+  /// 營業日(台北時間的日期)與當天流水號,組成顯示用的訂單編號
+  businessDate    DateTime        @db.Date
+  sequence        Int
+  /// 顯示給顧客與店員看的短編號,例如 A001
+  orderNumber     String
+  /// 訪客用來查詢訂單的隨機字串(不能用連號 ID,否則別人能猜到別人的訂單)
+  trackingToken   String          @unique
+  fulfillmentType FulfillmentType @default(TAKEOUT)
+  status          OrderStatus     @default(PENDING)
+
+  /// 為日後的會員功能預留;訪客下單時為空
+  customerId      String?         @db.Uuid
+  customerName    String
+  customerPhone   String
+  note            String?
+  pickupAt        DateTime?
+  /// 內用預留
+  tableNumber     String?
+  /// 外送預留
+  deliveryAddress String?
+
+  /// 金額(新台幣元,整數):小計、折扣(預留,目前 0)、總額
+  subtotal        Int
+  discount        Int             @default(0)
+  total           Int
+
+  cancelReason    String?
+  acceptedAt      DateTime?
+  readyAt         DateTime?
+  completedAt     DateTime?
+  cancelledAt     DateTime?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  store    Store       @relation(fields: [storeId], references: [id])
+  customer Customer?   @relation(fields: [customerId], references: [id])
+  items    OrderItem[]
+  payments Payment[]
+  invoice  Invoice?
+
+  @@unique([storeId, businessDate, sequence])
+  @@index([storeId, status, createdAt])
+  @@index([storeId, createdAt])
+  @@index([customerPhone])
+}
+
+model OrderItem {
+  id                String   @id @default(uuid(7)) @db.Uuid
+  orderId           String   @db.Uuid
+  /// 僅供參考;餐點之後被刪除也不影響訂單
+  menuItemId        String?  @db.Uuid
+  /// 下單當下的名稱與單價(快照)
+  nameSnapshot      String
+  unitPriceSnapshot Int
+  quantity          Int
+  note              String?
+  lineTotal         Int
+  createdAt         DateTime @default(now())
+
+  order    Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItem MenuItem?         @relation(fields: [menuItemId], references: [id], onDelete: SetNull)
+  options  OrderItemOption[]
+
+  @@index([orderId])
+}
+
+model OrderItemOption {
+  id                 String @id @default(uuid(7)) @db.Uuid
+  orderItemId        String @db.Uuid
+  nameSnapshot       String
+  priceDeltaSnapshot Int
+
+  orderItem OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+
+  @@index([orderItemId])
+}
+
+// ─────────────── 付款與發票 ───────────────
+
+model Payment {
+  id             String        @id @default(uuid(7)) @db.Uuid
+  orderId        String        @db.Uuid
+  /// 付款提供者的名稱,目前只有 'cash';日後接金流會有 'ecpay' 等
+  provider       String
+  method         PaymentMethod
+  status         PaymentStatus @default(PENDING)
+  /// 金額(新台幣元,整數)
+  amount         Int
+  /// 金流那邊的交易編號(現金沒有)
+  providerRef    String?
+  /// 冪等鍵:避免同一個請求重複建立付款
+  idempotencyKey String?       @unique
+  paidAt         DateTime?
+  /// 誰確認收款(員工 ID)
+  confirmedById  String?       @db.Uuid
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([provider, providerRef])
+}
+
+/// 電子發票(預留,MVP 一律 NOT_REQUIRED)
+model Invoice {
+  id            String        @id @default(uuid(7)) @db.Uuid
+  orderId       String        @unique @db.Uuid
+  status        InvoiceStatus @default(NOT_REQUIRED)
+  type          String?
+  /// 載具
+  carrier       String?
+  /// 買受人統一編號
+  buyerTaxId    String?
+  invoiceNumber String?
+  provider      String?
+  issuedAt      DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+// ─────────────── 稽核 ───────────────
+
+/// 稽核日誌:誰、何時、做了什麼(改價格、退款、改狀態…)
+model AuditLog {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  storeId   String   @db.Uuid
+  actorId   String?  @db.Uuid
+  action    String
+  entity    String
+  entityId  String
+  meta      Json?
+  createdAt DateTime @default(now())
+
+  store Store @relation(fields: [storeId], references: [id])
+
+  @@index([storeId, createdAt])
+  @@index([entity, entityId])
+}

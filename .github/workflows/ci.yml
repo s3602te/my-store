@@ -1,0 +1,30 @@
+name: 檢查(型別、測試、建置)
+
+# 每次推送到 master、或有人送出 Pull Request 時,自動檢查程式有沒有壞掉。
+# 不需要資料庫:測試用假的資料庫連線,不會連到任何真實資料。
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      # 只給 Prisma 產生程式碼與測試用的假連線字串,不是真的資料庫
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run db:generate
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
