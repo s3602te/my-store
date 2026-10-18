@@ -277,6 +277,9 @@ model OrderItem {
 model OrderItemOption {
   id                 String @id @default(uuid(7)) @db.Uuid
   orderItemId        String @db.Uuid
+  /// 選項群組名稱的快照,例如「大小」(只看到「大」會不知道是什麼)
+  groupNameSnapshot  String @default("")
+  /// 選項名稱的快照,例如「大」
   nameSnapshot       String
   priceDeltaSnapshot Int
 
