@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { usePageTitle } from '../../hooks/usePageTitle'
-import { DEFAULT_IMAGE, formatPrice } from '../../lib/constants'
+import { DEFAULT_IMAGE } from '../../lib/constants'
+import { formatPrice, site } from '../../siteContent'
 import { useStore } from '../../store/StoreContext'
 import type { Product } from '../../types'
 
@@ -21,7 +22,7 @@ interface EditForm {
 }
 
 export default function AdminDashboardPage() {
-  usePageTitle('商店後台')
+  usePageTitle(site.admin.dashboard.pageTitle)
   const { isAdmin, adminLogout, products, users, addProduct, updateProduct, deleteProduct, deleteUser } =
     useStore()
   const navigate = useNavigate()
@@ -35,7 +36,7 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     if (!isAdmin && !warned.current) {
       warned.current = true
-      alert('請先登入！')
+      alert(site.admin.dashboard.pleaseLogin)
     }
   }, [isAdmin])
 
@@ -59,7 +60,7 @@ export default function AdminDashboardPage() {
       setPrice('')
       setImageUrl('')
     } else {
-      alert('請務必填寫商品名稱與價格，且價格需大於0。')
+      alert(site.admin.products.invalidAdd)
     }
   }
 
@@ -75,7 +76,7 @@ export default function AdminDashboardPage() {
       })
       setEditing(null)
     } else {
-      alert('請填寫所有必填欄位，且價格需大於0。')
+      alert(site.admin.editProduct.invalid)
     }
   }
 
@@ -88,11 +89,11 @@ export default function AdminDashboardPage() {
     })
 
   const handleDeleteProduct = (product: Product) => {
-    if (confirm(`確定要刪除 ID 為 ${product.id} 的商品嗎？此操作無法復原。`)) deleteProduct(product.id)
+    if (confirm(site.admin.products.confirmDelete(product.id))) deleteProduct(product.id)
   }
 
   const handleDeleteUser = (email: string) => {
-    if (confirm(`確定要刪除會員 ${email} 嗎？此操作無法復原。`)) deleteUser(email)
+    if (confirm(site.admin.users.confirmDelete(email))) deleteUser(email)
   }
 
   const handleLogout = () => {
@@ -103,7 +104,7 @@ export default function AdminDashboardPage() {
   return (
     <div className="min-h-screen bg-[#f0f2f5] font-admin text-[#333]">
       <header className="flex items-center justify-between bg-[#343a40] px-8 py-4 text-white max-md:flex-col max-md:gap-4">
-        <h1 className="m-0 text-2xl">商店後台儀表板</h1>
+        <h1 className="m-0 text-2xl">{site.admin.dashboard.title}</h1>
         <div className="flex items-center gap-4">
           <a
             href="#/products"
@@ -111,45 +112,45 @@ export default function AdminDashboardPage() {
             rel="noreferrer"
             className="rounded bg-[#007bff] px-3 py-2 text-[0.9rem] text-white no-underline"
           >
-            查看前台
+            {site.admin.dashboard.viewSite}
           </a>
           <button
             type="button"
             onClick={handleLogout}
             className="w-auto cursor-pointer rounded bg-[#dc3545] px-4 py-2 font-semibold text-white hover:bg-[#c82333]"
           >
-            登出
+            {site.admin.dashboard.logout}
           </button>
         </div>
       </header>
 
       <main className="p-8 max-md:p-4">
         <section className={sectionClass}>
-          <h2 className="mt-0 mb-6 border-b border-[#eee] pb-4">商品管理</h2>
+          <h2 className="mt-0 mb-6 border-b border-[#eee] pb-4">{site.admin.products.title}</h2>
           <form
             onSubmit={handleAdd}
             className="grid grid-cols-1 items-end gap-[15px] min-[769px]:grid-cols-2 min-[993px]:grid-cols-[1fr_1fr_1fr_auto]"
           >
             <div>
-              <label htmlFor="product-name" className={labelClass}>商品名稱</label>
+              <label htmlFor="product-name" className={labelClass}>{site.admin.products.name}</label>
               <input id="product-name" type="text" required value={name} onChange={(e) => setName(e.target.value)} className={inputClass} />
             </div>
             <div>
-              <label htmlFor="product-price" className={labelClass}>商品價格</label>
+              <label htmlFor="product-price" className={labelClass}>{site.admin.products.price}</label>
               <input
                 id="product-price"
                 type="number"
                 required
                 min={0}
                 step={1}
-                placeholder="只能輸入數字"
+                placeholder={site.admin.products.pricePlaceholder}
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
                 className={inputClass}
               />
             </div>
             <div className="min-[769px]:max-[992px]:col-span-full">
-              <label htmlFor="product-image" className={labelClass}>商品圖片URL</label>
+              <label htmlFor="product-image" className={labelClass}>{site.admin.products.image}</label>
               <input
                 id="product-image"
                 type="url"
@@ -159,19 +160,19 @@ export default function AdminDashboardPage() {
                 className={inputClass}
               />
             </div>
-            <button type="submit" className={primaryButton}>新增商品</button>
+            <button type="submit" className={primaryButton}>{site.admin.products.add}</button>
           </form>
 
           <hr className="my-8" />
-          <h3>現有商品列表</h3>
+          <h3>{site.admin.products.listTitle}</h3>
           <div className="overflow-x-auto">
             {products.length === 0 ? (
-              <p>目前沒有任何商品。請在上方新增商品。</p>
+              <p>{site.admin.products.empty}</p>
             ) : (
               <table className="w-full">
                 <thead>
                   <tr>
-                    {['ID', '名稱', '價格', '圖片預覽', '操作'].map((title) => (
+                    {site.admin.products.columns.map((title) => (
                       <th key={title} className={`${cellClass} bg-[#f8f9fa]`}>{title}</th>
                     ))}
                   </tr>
@@ -187,8 +188,8 @@ export default function AdminDashboardPage() {
                       </td>
                       <td className={cellClass}>
                         <div className="flex gap-[10px]">
-                          <button type="button" onClick={() => openEdit(product)} className={`${smallButton} bg-[#ffc107] hover:bg-[#e0a800]`}>修改</button>
-                          <button type="button" onClick={() => handleDeleteProduct(product)} className={`${smallButton} bg-[#dc3545] text-white hover:bg-[#c82333]`}>刪除</button>
+                          <button type="button" onClick={() => openEdit(product)} className={`${smallButton} bg-[#ffc107] hover:bg-[#e0a800]`}>{site.admin.dashboard.edit}</button>
+                          <button type="button" onClick={() => handleDeleteProduct(product)} className={`${smallButton} bg-[#dc3545] text-white hover:bg-[#c82333]`}>{site.admin.dashboard.delete}</button>
                         </div>
                       </td>
                     </tr>
@@ -200,15 +201,15 @@ export default function AdminDashboardPage() {
         </section>
 
         <section className={sectionClass}>
-          <h2 className="mt-0 mb-6 border-b border-[#eee] pb-4">會員管理</h2>
+          <h2 className="mt-0 mb-6 border-b border-[#eee] pb-4">{site.admin.users.title}</h2>
           <div className="overflow-x-auto">
             {users.length === 0 ? (
-              <p>目前沒有已註冊的會員。</p>
+              <p>{site.admin.users.empty}</p>
             ) : (
               <table className="w-full">
                 <thead>
                   <tr>
-                    {['電子郵件 (帳號)', '密碼', '操作'].map((title) => (
+                    {site.admin.users.columns.map((title) => (
                       <th key={title} className={`${cellClass} bg-[#f8f9fa]`}>{title}</th>
                     ))}
                   </tr>
@@ -220,8 +221,8 @@ export default function AdminDashboardPage() {
                       <td className={cellClass}>{user.password}</td>
                       <td className={cellClass}>
                         <div className="flex gap-[10px]">
-                          <button type="button" onClick={() => alert('修改會員功能尚未實作。')} className={`${smallButton} bg-[#ffc107] hover:bg-[#e0a800]`}>修改</button>
-                          <button type="button" onClick={() => handleDeleteUser(user.email)} className={`${smallButton} bg-[#dc3545] text-white hover:bg-[#c82333]`}>刪除</button>
+                          <button type="button" onClick={() => alert(site.admin.users.editNotImplemented)} className={`${smallButton} bg-[#ffc107] hover:bg-[#e0a800]`}>{site.admin.dashboard.edit}</button>
+                          <button type="button" onClick={() => handleDeleteUser(user.email)} className={`${smallButton} bg-[#dc3545] text-white hover:bg-[#c82333]`}>{site.admin.dashboard.delete}</button>
                         </div>
                       </td>
                     </tr>
@@ -241,27 +242,27 @@ export default function AdminDashboardPage() {
           <div className="relative mx-auto my-[10%] w-[90%] max-w-[500px] rounded-lg bg-white p-[30px] shadow-[0_5px_15px_rgba(0,0,0,0.3)]">
             <button
               type="button"
-              aria-label="關閉"
+              aria-label={site.admin.dashboard.close}
               onClick={() => setEditing(null)}
               className="absolute right-5 top-[10px] cursor-pointer text-[28px] font-bold leading-none text-[#aaa] hover:text-black"
             >
               &times;
             </button>
-            <h2 className="mt-0">編輯商品</h2>
+            <h2 className="mt-0">{site.admin.editProduct.title}</h2>
             <form onSubmit={handleEditSubmit}>
               <div className="mb-5">
-                <label htmlFor="edit-product-name" className={labelClass}>商品名稱</label>
+                <label htmlFor="edit-product-name" className={labelClass}>{site.admin.products.name}</label>
                 <input id="edit-product-name" type="text" required value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} className={inputClass} />
               </div>
               <div className="mb-5">
-                <label htmlFor="edit-product-price" className={labelClass}>商品價格</label>
+                <label htmlFor="edit-product-price" className={labelClass}>{site.admin.products.price}</label>
                 <input id="edit-product-price" type="number" required min={0} step={1} value={editing.price} onChange={(e) => setEditing({ ...editing, price: e.target.value })} className={inputClass} />
               </div>
               <div className="mb-5">
-                <label htmlFor="edit-product-image" className={labelClass}>商品圖片URL</label>
+                <label htmlFor="edit-product-image" className={labelClass}>{site.admin.products.image}</label>
                 <input id="edit-product-image" type="url" value={editing.imageUrl} onChange={(e) => setEditing({ ...editing, imageUrl: e.target.value })} className={inputClass} />
               </div>
-              <button type="submit" className={primaryButton}>儲存變更</button>
+              <button type="submit" className={primaryButton}>{site.admin.editProduct.save}</button>
             </form>
           </div>
         </div>

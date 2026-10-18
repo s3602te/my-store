@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { SITE_NAME } from '../lib/constants'
+import { site } from '../siteContent'
 import { useStore } from '../store/StoreContext'
 
 const navItemClass =
@@ -25,17 +25,17 @@ export default function Header() {
       <header className="relative border-b-[5px] border-dashed border-white bg-chiikawa-blue py-6 text-center text-[1.2rem] text-white">
         <Link
           to="/admin"
-          title="前往後台管理"
+          title={site.header.adminLinkTitle}
           className="absolute left-[15px] top-[15px] rounded-full bg-white/25 px-3 py-1.5 text-[0.8rem] font-normal text-white no-underline transition-colors duration-300 hover:bg-white/40"
         >
-          後台登入
+          {site.header.adminLink}
         </Link>
-        <h1>{SITE_NAME}</h1>
+        <h1>{site.name}</h1>
 
         {/* 手機版漢堡選單:三條線平滑變成 X */}
         <button
           type="button"
-          aria-label={menuOpen ? '關閉選單' : '開啟選單'}
+          aria-label={menuOpen ? site.header.closeMenu : site.header.openMenu}
           aria-expanded={menuOpen}
           aria-controls="main-nav"
           onClick={() => setMenuOpen((open) => !open)}
@@ -58,17 +58,17 @@ export default function Header() {
       >
         <div className="overflow-hidden">
           <div className="flex justify-center py-[5px] max-md:flex-col max-md:items-center">
-            <Link to="/" className={navItemClass}>首頁</Link>
-            <Link to="/products" className={navItemClass}>產品</Link>
-            <Link to="/about" className={navItemClass}>關於我們</Link>
-            <Link to="/contact" className={navItemClass}>聯絡我們</Link>
+            <Link to="/" className={navItemClass}>{site.nav.home}</Link>
+            <Link to="/products" className={navItemClass}>{site.nav.products}</Link>
+            <Link to="/about" className={navItemClass}>{site.nav.about}</Link>
+            <Link to="/contact" className={navItemClass}>{site.nav.contact}</Link>
             {isLoggedIn ? (
-              <Link to="/member" className={navItemClass}>會員中心</Link>
+              <Link to="/member" className={navItemClass}>{site.nav.member}</Link>
             ) : (
-              <Link to="/login" className={navItemClass}>登入/註冊</Link>
+              <Link to="/login" className={navItemClass}>{site.nav.login}</Link>
             )}
             <button type="button" onClick={openCart} className={navItemClass}>
-              購物車 ({cartCount})
+              {site.nav.cart} ({cartCount})
             </button>
           </div>
         </div>

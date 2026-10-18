@@ -2,10 +2,11 @@ import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { FormCard, FormField, SubmitButton } from '../components/FormField'
 import { usePageTitle } from '../hooks/usePageTitle'
+import { site } from '../siteContent'
 import { useStore } from '../store/StoreContext'
 
 export default function LoginPage() {
-  usePageTitle('登入/註冊')
+  usePageTitle(site.login.pageTitle)
   const { login, notify } = useStore()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
@@ -17,27 +18,28 @@ export default function LoginPage() {
     const trimmedPassword = password.trim()
 
     if (!trimmedEmail || !trimmedPassword) {
-      alert('請輸入電子郵件和密碼。')
+      alert(site.login.missingFields)
       return
     }
     if (!login(trimmedEmail, trimmedPassword)) {
-      alert('電子郵件或密碼錯誤。')
+      alert(site.login.wrongCredentials)
       return
     }
-    notify('登入成功！歡迎回來！')
+    notify(site.login.success)
     setTimeout(() => navigate('/'), 1500)
   }
 
   return (
     <>
-      <h2>會員登入</h2>
+      <h2>{site.login.title}</h2>
       <FormCard onSubmit={handleSubmit}>
-        <FormField label="電子郵件" id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
-        <FormField label="密碼" id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
-        <SubmitButton>登入</SubmitButton>
+        <FormField label={site.login.email} id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+        <FormField label={site.login.password} id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+        <SubmitButton>{site.login.submit}</SubmitButton>
       </FormCard>
       <p className="mt-5 text-center">
-        還沒有帳號嗎？ <Link to="/register" className="text-link">立即註冊</Link>
+        {site.login.noAccount}{' '}
+        <Link to="/register" className="text-link">{site.login.registerLink}</Link>
       </p>
     </>
   )

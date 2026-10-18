@@ -1,8 +1,8 @@
 import { useEffect } from 'react'
-import { SITE_NAME } from '../lib/constants'
+import { site } from '../siteContent'
 
 export function usePageTitle(title?: string) {
   useEffect(() => {
-    document.title = title ? `${title} - ${SITE_NAME}` : SITE_NAME
+    document.title = title ? `${title} - ${site.name}` : site.name
   }, [title])
 }

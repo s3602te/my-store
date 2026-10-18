@@ -2,10 +2,11 @@ import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { FormCard, FormField, SubmitButton } from '../components/FormField'
 import { usePageTitle } from '../hooks/usePageTitle'
+import { site } from '../siteContent'
 import { useStore } from '../store/StoreContext'
 
 export default function RegisterPage() {
-  usePageTitle('註冊')
+  usePageTitle(site.register.pageTitle)
   const { registerUser, notify } = useStore()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
@@ -18,37 +19,38 @@ export default function RegisterPage() {
 
     // 註冊防呆
     if (password !== confirmPassword) {
-      alert('兩次輸入的密碼不一致！')
+      alert(site.register.passwordMismatch)
       return
     }
     if (password.length < 6) {
-      alert('密碼長度至少需要6個字元。')
+      alert(site.register.passwordTooShort)
       return
     }
     if (!/^\S+@\S+\.\S+$/.test(trimmedEmail)) {
-      alert('請輸入有效的電子郵件格式。')
+      alert(site.register.invalidEmail)
       return
     }
     if (!registerUser(trimmedEmail, password)) {
-      alert('這個電子郵件已經被註冊了。')
+      alert(site.register.emailExists)
       return
     }
 
-    notify('註冊成功！頁面將跳轉至登入頁...')
+    notify(site.register.success)
     setTimeout(() => navigate('/login'), 2000)
   }
 
   return (
     <>
-      <h2>會員註冊</h2>
+      <h2>{site.register.title}</h2>
       <FormCard onSubmit={handleSubmit}>
-        <FormField label="電子郵件" id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
-        <FormField label="設定密碼" id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
-        <FormField label="確認密碼" id="confirm-password" type="password" required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
-        <SubmitButton>建立帳號</SubmitButton>
+        <FormField label={site.register.email} id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+        <FormField label={site.register.password} id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+        <FormField label={site.register.confirmPassword} id="confirm-password" type="password" required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+        <SubmitButton>{site.register.submit}</SubmitButton>
       </FormCard>
       <p className="mt-5 text-center">
-        已經有帳號了嗎？ <Link to="/login" className="text-link">立即登入</Link>
+        {site.register.hasAccount}{' '}
+        <Link to="/login" className="text-link">{site.register.loginLink}</Link>
       </p>
     </>
   )

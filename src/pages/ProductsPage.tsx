@@ -1,14 +1,15 @@
 import ProductGrid from '../components/ProductGrid'
 import { usePageTitle } from '../hooks/usePageTitle'
+import { site } from '../siteContent'
 import { useStore } from '../store/StoreContext'
 
 export default function ProductsPage() {
-  usePageTitle('所有產品')
+  usePageTitle(site.productsPage.pageTitle)
   const { products } = useStore()
 
   return (
     <>
-      <h2>所有產品</h2>
+      <h2>{site.productsPage.title}</h2>
       <ProductGrid products={products} />
     </>
   )

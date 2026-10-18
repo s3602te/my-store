@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { site } from '../siteContent'
 
 export default function BackToTop() {
   const [visible, setVisible] = useState(false)
@@ -13,8 +14,8 @@ export default function BackToTop() {
   return (
     <button
       type="button"
-      title="回到頂部"
-      aria-label="回到頂部"
+      title={site.backToTop}
+      aria-label={site.backToTop}
       onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
       className={`fixed bottom-5 right-5 z-50 h-11 w-11 cursor-pointer rounded-full bg-chiikawa-blue text-white shadow-[0_2px_10px_rgba(0,0,0,0.2)] transition-all duration-300 hover:bg-chiikawa-blue-dark ${
         visible ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-3 opacity-0'

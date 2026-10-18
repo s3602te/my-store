@@ -1,6 +1,7 @@
 import { Link, useParams } from 'react-router-dom'
 import { usePageTitle } from '../hooks/usePageTitle'
-import { DEFAULT_IMAGE, formatPrice } from '../lib/constants'
+import { DEFAULT_IMAGE } from '../lib/constants'
+import { formatPrice, site } from '../siteContent'
 import { useStore } from '../store/StoreContext'
 
 export default function ProductDetailPage() {
@@ -8,14 +9,14 @@ export default function ProductDetailPage() {
   const { products, addToCart } = useStore()
   const product = products.find((p) => p.id === id)
 
-  usePageTitle(product ? product.name : '商品詳情')
+  usePageTitle(product ? product.name : site.productDetail.pageTitle)
 
   if (!product) {
     return (
       <>
-        <h2>找不到商品</h2>
-        <p>您要找的商品可能已經下架或不存在。</p>
-        <Link to="/products" className="text-link">回到商品列表</Link>
+        <h2>{site.productDetail.notFoundTitle}</h2>
+        <p>{site.productDetail.notFoundText}</p>
+        <Link to="/products" className="text-link">{site.productDetail.backToList}</Link>
       </>
     )
   }
@@ -33,14 +34,14 @@ export default function ProductDetailPage() {
         <h1 className="mt-0 text-[2.5rem]">{product.name}</h1>
         <p className="my-5 text-[2rem] text-chiikawa-red">{formatPrice(product.price)}</p>
         <p className="mb-[30px] whitespace-pre-line leading-[1.8]">
-          {product.description || '店家尚未提供詳細描述。'}
+          {product.description || site.productDetail.noDescription}
         </p>
         <button
           type="button"
           onClick={() => addToCart(product)}
           className="cursor-pointer rounded-full bg-chiikawa-green px-[30px] py-[15px] text-[1.2rem] text-white transition-colors duration-300 hover:bg-chiikawa-green-dark"
         >
-          加入購物車
+          {site.productDetail.addToCart}
         </button>
       </div>
     </div>

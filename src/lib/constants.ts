@@ -1,4 +1,4 @@
-export const SITE_NAME = '我的線上商店'
+export { formatPrice } from '../siteContent'
 
 /** 商品沒有填圖片時的預設圖(內嵌 SVG,不依賴外部服務) */
 export const DEFAULT_IMAGE =
@@ -9,5 +9,3 @@ export const DEFAULT_IMAGE =
       '<text x="50%" y="50%" fill="#5c5c5c" font-family="sans-serif" font-size="24" ' +
       'text-anchor="middle" dominant-baseline="middle">No Image</text></svg>',
   )
-
-export const formatPrice = (value: number) => `NT$ ${value.toLocaleString()}`

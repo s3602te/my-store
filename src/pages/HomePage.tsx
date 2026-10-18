@@ -1,5 +1,6 @@
 import ProductGrid from '../components/ProductGrid'
 import { usePageTitle } from '../hooks/usePageTitle'
+import { site } from '../siteContent'
 import { useStore } from '../store/StoreContext'
 
 export default function HomePage() {
@@ -8,7 +9,7 @@ export default function HomePage() {
 
   return (
     <>
-      <h2>熱門商品</h2>
+      <h2>{site.home.title}</h2>
       <ProductGrid products={products} />
     </>
   )

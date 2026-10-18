@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { DEFAULT_IMAGE, formatPrice } from '../lib/constants'
+import { site } from '../siteContent'
 import { useStore } from '../store/StoreContext'
 import type { Product } from '../types'
 
@@ -20,14 +21,14 @@ export default function ProductCard({ product }: { product: Product }) {
           to={`/product/${product.id}`}
           className="flex-1 rounded-full bg-chiikawa-blue px-[15px] py-[10px] text-[0.9rem] font-bold text-white no-underline transition-colors duration-300 hover:bg-chiikawa-blue-dark"
         >
-          商品詳情
+          {site.productCard.detail}
         </Link>
         <button
           type="button"
           onClick={() => addToCart(product)}
           className="flex-1 cursor-pointer rounded-full bg-chiikawa-green px-[15px] py-[10px] text-[0.9rem] font-bold text-white transition-colors duration-300 hover:bg-chiikawa-green-dark"
         >
-          加入購物車
+          {site.productCard.addToCart}
         </button>
       </div>
     </div>

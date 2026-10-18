@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react'
 import { arrayCodec, rawCodec, useLocalStorage } from '../hooks/useLocalStorage'
+import { site } from '../siteContent'
 import type { CartItem, Order, Product, PurchaseHistory, User } from '../types'
 
 // 後台帳密沿用原本寫死的值(純前端的示範用驗證,並非真正的安全機制)
@@ -131,7 +132,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
               )
             : [...list, { id: product.id, name: product.name, price: product.price, quantity: 1 }],
         )
-        notify(`${product.name} 已加入購物車`)
+        notify(site.addedToCart(product.name))
       },
       changeQuantity: (id, change) =>
         setCart((list) =>
