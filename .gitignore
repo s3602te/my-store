@@ -35,3 +35,7 @@ desktop.ini
 .vscode/
 .idea/
 *.swp
+
+# 建置輸出
+dist/
+*.tsbuildinfo

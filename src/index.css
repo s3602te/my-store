@@ -1,0 +1,85 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-chiikawa-blue: #a2d7dd;
+  --color-chiikawa-blue-dark: #89c5cd;
+  --color-chiikawa-pink: #f7c5cc;
+  --color-chiikawa-yellow: #fde49c;
+  --color-chiikawa-text: #5c5c5c;
+  --color-chiikawa-bg: #fffcf2;
+  --color-chiikawa-green: #a3d6a3;
+  --color-chiikawa-green-dark: #8ac98a;
+  --color-chiikawa-red: #f0a1a8;
+  --color-chiikawa-red-dark: #d98c93;
+
+  --font-sans: 'M PLUS Rounded 1c', sans-serif;
+  --font-admin: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+
+  /* 原站在 768px(含)以下切換成手機版,所以 md 從 769px 開始 */
+  --breakpoint-md: 48.0625rem;
+
+  --animate-modal-in: modal-in 0.4s;
+  --animate-toast: toast 3s forwards;
+
+  @keyframes modal-in {
+    from {
+      transform: translateY(-80px);
+      opacity: 0;
+    }
+    to {
+      transform: none;
+      opacity: 1;
+    }
+  }
+
+  @keyframes toast {
+    0%,
+    100% {
+      opacity: 0;
+      bottom: 20px;
+    }
+    10%,
+    90% {
+      opacity: 1;
+      bottom: 40px;
+    }
+  }
+}
+
+/* Tailwind 會重設標題/段落樣式,這裡還原瀏覽器預設值以維持原本的版面 */
+@layer base {
+  body {
+    margin: 0;
+    background-color: var(--color-chiikawa-bg);
+    color: var(--color-chiikawa-text);
+  }
+  h1 {
+    font-size: 2em;
+    font-weight: 700;
+    margin: 0.67em 0;
+  }
+  h2 {
+    font-size: 1.5em;
+    font-weight: 700;
+    margin: 0.83em 0;
+  }
+  h3 {
+    font-size: 1.17em;
+    font-weight: 700;
+    margin: 1em 0;
+  }
+  p {
+    margin: 1em 0;
+  }
+  hr {
+    margin: 0.5em 0;
+    border-color: #d0d0d0;
+  }
+}
+
+@layer components {
+  .text-link {
+    color: #0000ee;
+    text-decoration: underline;
+  }
+}
