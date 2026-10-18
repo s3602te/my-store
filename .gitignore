@@ -1,0 +1,37 @@
+# Claude 相關(不上傳)
+CLAUDE.md
+CLAUDE.local.md
+.claude/
+
+# 環境變數與機密
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+id_rsa*
+secrets/
+credentials*.json
+service-account*.json
+*.token
+
+# 資料庫 / 備份 / 記錄
+*.sql
+*.sqlite
+*.sqlite3
+*.db
+*.bak
+*.log
+
+# 相依套件與系統檔
+node_modules/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 編輯器
+.vscode/
+.idea/
+*.swp
